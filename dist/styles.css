@@ -32,7 +32,7 @@ body {
 
 .grid-termo {
   display: grid;
-  grid-template-rows: repeat(5, 65px);
+  grid-template-rows: repeat(5, 60px);
   gap: 7px;
 
   margin-bottom: 2%;
@@ -40,7 +40,7 @@ body {
 
 .grid-termo > .linha {
   display: grid;
-  grid-template-columns: repeat(5, 65px);
+  grid-template-columns: repeat(5, 60px);
   gap: 7px;
 }
 
@@ -59,15 +59,15 @@ body {
 
 .grid-teclado {
   display: grid;
-  grid-template-columns: repeat(11, 35px);
-  gap: 2.2px;
+  grid-template-columns: repeat(11, 25px);
+  gap: 2px;
 }
 
 .grid-teclado > button {
-  height: 35px;
+  height: 25px;
 
   border: none;
-  border-radius: 5px;
+  border-radius: 2px;
 }
 
 .grid-teclado > .btn-enter {
@@ -92,4 +92,143 @@ body {
   color: #32fe5e;
 
   font-weight: 800;
+}
+
+.btn-historico {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+
+  height: 45px;
+  padding: 5px 10px;
+  
+  font-size: 16px;
+
+  color: #ffffff;
+  background-color: transparent;
+
+  border: 1px solid #ffffff;
+  border-radius: 10px;
+
+  position: absolute;
+  left: 600px;
+  bottom: 505px;
+}
+
+.btn-historico:hover {
+  border-width: 3px;
+  font-weight: 600;
+}
+
+.container-historico {
+  position: absolute;
+
+  display: grid;
+  gap: 40px;
+
+  z-index: 1;
+
+  background-color: #312B2D;
+
+  border-radius: 10px;
+
+  padding: 80px 120px;
+
+  backdrop-filter: blur(20px);
+}
+
+.titulo-historico {
+  text-align: center;
+  font-size: 35px;
+  margin: 0;
+}
+
+
+.grid-numeros {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(50px, 1fr));
+  gap: 20px;
+}
+
+.grid-numeros > .coluna-numero {
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+  gap: 5px;
+
+  font-weight: 700;
+}
+
+.coluna-numero > .header-numero {
+  font-size: 30px;
+
+  margin: 0;
+}
+
+.coluna-numero > .descricao-numero {
+  font-size: 18px;
+
+  margin: 0;
+}
+
+.grid-numeros {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(50px, 1fr));
+  gap: 20px;
+}
+
+.grid-numeros > .coluna-numero {
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+  gap: 5px;
+
+  font-weight: 700;
+}
+
+.coluna-numero > .header-numero {
+  font-size: 30px;
+
+  margin: 0;
+}
+
+.coluna-numero > .descricao-numero {
+  font-size: 18px;
+
+  margin: 0;
+}
+
+.grid-tentativas {
+
+}
+
+.grid-tentativas > .linha-tentativa {
+  display: flex;
+  gap: 10px;
+  height: 50px;
+
+  align-items: center;
+}
+
+.linha-tentativa > .indice-tentativa {
+  font-size: 20px;
+}
+
+.linha-tentativa > .valor-tentativa {
+  width: 100%;
+
+  font-size: 25px;
+  font-weight: 700;
+  text-align: end;
+  padding: 5px;
+
+  color: #080404;
+  background-color: #32fe5e;
+
+  border-radius: 5px;
+}
+
+.d-none
+{
+  display: none;
 }

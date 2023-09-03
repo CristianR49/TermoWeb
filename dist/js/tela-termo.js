@@ -1,19 +1,25 @@
-import { Termo } from "./termo.js";
+import { LocalStorageService } from "./services/local-storage.service.js";
+import { Termo } from "./dominio/termo.js";
 class TelaTermo {
     constructor() {
         this.tentativafoiAvaliada = false;
+        this.localStorageService = new LocalStorageService();
+        this.termo = new Termo(this.localStorageService.carregarDados());
+        this.termo.tentativas = 0;
         this.posColunaAtual = 0;
         this.posLinhaAtual = 0;
-        console.log("teste");
-        this.termo = new Termo();
         this.pontos = 0;
         this.registrarElementos();
         this.registrarEventos();
+        this.popularEstatisticas();
+        this.desenharGridTentativas();
     }
     registrarElementos() {
         this.pnlTermo = document.getElementById("pnlTermo");
         this.pnlTeclado = document.getElementById("pnlTeclado");
         this.txtNotificacao = document.getElementById("txtNotificacao");
+        this.btnExibirHistorico = document.getElementById('btnExibirHistorico');
+        this.pnlHistorico = document.getElementById('pnlHistorico');
     }
     registrarEventos() {
         for (let botao of this.pnlTeclado.children) {
@@ -23,16 +29,23 @@ class TelaTermo {
                 }
             }
             if (botao.textContent == "Enter") {
-                botao.addEventListener("click", (sender) => this.acionarEnter(sender));
+                botao.addEventListener("click", (sender) => this.Enter(sender));
             }
             if (botao.textContent == "Recomeçar") {
-                botao.addEventListener("click", (sender) => this.acionarRecomecar(sender));
+                botao.addEventListener("click", (sender) => this.recomecar(sender));
             }
         }
+        this.btnExibirHistorico.addEventListener('click', () => {
+            this.pnlHistorico.style.display = 'grid';
+        });
+        document.addEventListener('click', (event) => {
+            const target = event.target;
+            if (!this.pnlHistorico.contains(target) && event.target != this.btnExibirHistorico)
+                this.pnlHistorico.style.display = 'none';
+        });
     }
     darPalpite(sender) {
         var _a;
-        console.log("colunainicio" + this.posColunaAtual);
         let divLinhaAtual;
         let divLetraAtual;
         divLinhaAtual = this.pnlTermo.children[this.posLinhaAtual];
@@ -42,11 +55,9 @@ class TelaTermo {
             divLetraAtual = divLinhaAtual.children[this.posColunaAtual];
             divLetraAtual.textContent = chute;
         }
-        console.log(botaoClicado.textContent);
         this.txtNotificacao.textContent = "";
         this.atualizarVariaveis();
         this.tentativafoiAvaliada = false;
-        console.log("colunafinal" + this.posColunaAtual);
     }
     atualizarVariaveis() {
         if (this.posColunaAtual == 5 && this.tentativafoiAvaliada) {
@@ -59,13 +70,9 @@ class TelaTermo {
             this.posColunaAtual = 0;
             this.posLinhaAtual++;
             this.pontos = 0;
-            console.log("linha" + this.posLinhaAtual);
-            if (this.posLinhaAtual == 5) {
-                this.derrota();
-            }
         }
     }
-    acionarEnter(sender) {
+    Enter(sender) {
         let divLinhaAtual;
         divLinhaAtual = this.pnlTermo.children[this.posLinhaAtual];
         if (this.posColunaAtual < 5) {
@@ -76,9 +83,6 @@ class TelaTermo {
         this.avaliarTentativa(this.tentativafoiAvaliada, divLinhaAtual);
         this.tentativafoiAvaliada = true;
         this.atualizarVariaveis();
-    }
-    acionarRecomecar(sender) {
-        this.recomecar();
     }
     avaliarTentativa(tentativaAvaliada, divLinhaAtual) {
         for (let i = 0; i < 5; i++) {
@@ -98,19 +102,29 @@ class TelaTermo {
                     }
                 }
             }
-            if (this.pontos == 5) {
-                this.vitoria();
-                return;
-            }
+        }
+        this.termo.registrarTetativas();
+        if (this.pontos == 5) {
+            this.vitoria();
+            return;
+        }
+        if (this.posLinhaAtual == 4 && this.posColunaAtual == 5) {
+            this.derrota();
         }
         this.pontos = 0;
     }
     vitoria() {
+        this.termo.registrarVitoria();
+        this.localStorageService.salvarDados(this.termo.historico);
+        this.termo.tentativas = 0;
         this.txtNotificacao.textContent = "Você Venceu! A palavra era: " + this.termo.termoMisterioso;
         this.txtNotificacao.style.color = "green";
         this.tecladoApenasBotaoRecomecar();
     }
     derrota() {
+        this.termo.registrarDerrota();
+        this.localStorageService.salvarDados(this.termo.historico);
+        this.termo.tentativas = 0;
         this.txtNotificacao.textContent = "Você Perdeu! A palavra era: " + this.termo.termoMisterioso;
         this.txtNotificacao.style.color = "red";
         this.tecladoApenasBotaoRecomecar();
@@ -122,9 +136,10 @@ class TelaTermo {
             }
         }
     }
-    recomecar() {
+    recomecar(sender) {
+        this.termo = new Termo(this.localStorageService.carregarDados());
+        this.termo.tentativas = 0;
         this.txtNotificacao.style.color = "white";
-        this.termo = new Termo();
         this.posColunaAtual = 0;
         this.posLinhaAtual = 0;
         this.pontos = 0;
@@ -132,13 +147,46 @@ class TelaTermo {
         this.txtNotificacao.textContent = "";
         for (let divLinha of this.pnlTermo.children) {
             for (let divLetra of divLinha.children) {
-                divLetra.style.backgroundColor = "bebebe";
+                divLetra.style.backgroundColor = "#bebebe";
                 divLetra.textContent = "";
             }
         }
         for (let botao of this.pnlTeclado.children) {
             botao.disabled = false;
         }
+    }
+    popularEstatisticas() {
+        const lblJogos = document.getElementById('lblJogos');
+        const lblVitorias = document.getElementById('lblVitorias');
+        const lblDerrotas = document.getElementById('lblDerrotas');
+        const lblSequencia = document.getElementById('lblSequencia');
+        lblJogos.textContent = this.termo.historico.jogos.toString();
+        lblVitorias.textContent = this.termo.historico.vitorias.toString();
+        lblDerrotas.textContent = this.termo.historico.derrotas.toString();
+        lblSequencia.textContent = this.termo.historico.sequencia.toString();
+    }
+    desenharGridTentativas() {
+        const elementos = Array.from(document.querySelectorAll('.valor-tentativa'));
+        const tentativas = this.termo.historico.tentativas;
+        for (let i = 0; i < tentativas.length; i++) {
+            const label = elementos[i];
+            const qtdTentativas = tentativas[i];
+            label.textContent = qtdTentativas.toString();
+            let tamanho = 0;
+            if (qtdTentativas > 0 && this.termo.historico.vitorias > 0)
+                tamanho = qtdTentativas / this.termo.historico.vitorias;
+            else
+                tamanho = 0.05;
+            const novoTamanho = tamanho * 100;
+            label.style.width = `${(novoTamanho).toString()}%`;
+        }
+    }
+    resetarHistorico() {
+        this.termo.historico.jogos = 0;
+        this.termo.historico.vitorias = 0;
+        this.termo.historico.derrotas = 0;
+        this.termo.historico.sequencia = 0;
+        this.termo.historico.tentativas = [0, 0, 0, 0, 0];
     }
 }
 window.addEventListener("load", () => new TelaTermo());
